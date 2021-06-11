@@ -46,6 +46,7 @@ This version of SimpBMS has been modified as the Space Balls edition utilising t
   2 Native(Flexcans) + 2 MCP2515/SPI Cans
 */
 
+#include "Spaceballs.h"
 #include "BMSModuleManager.h"
 #include <Arduino.h>
 #include "config.h"
@@ -56,6 +57,7 @@ This version of SimpBMS has been modified as the Space Balls edition utilising t
 #include <SPI.h>
 #include "BMSUtil.h"
 #include "BMSCan.h"
+#include "CRC8.h"
 
 #define CPU_REBOOT (_reboot_Teensyduino_());
 #define DEFAULT_CAN_INTERFACE_INDEX 0
@@ -275,7 +277,7 @@ void loadSettings()
   settings.chargerCanIndex = DEFAULT_CAN_INTERFACE_INDEX; //default to can0
   settings.veCanIndex = DEFAULT_CAN_INTERFACE_INDEX; //default to can0
   settings.secondBatteryCanIndex = DEFAULT_CAN_INTERFACE_INDEX; //default to can0, effectivly no second pack
-  settings.BMStype = 0 // default batery type (VW)
+  settings.BMStype = 0; // default batery type (VW)
   settings.curcan = LemCAB300;
   settings.voltsoc = 0; //SOC purely voltage based
   settings.Pretime = 5000; //ms of precharge time
@@ -2540,8 +2542,8 @@ void menu()
         if (Serial.available() > 0)
         {
           settings.BMStype++;
-          if (settings.settings.BMStype > 1) {
-            settings.settings.BMStype = 0;
+          if (settings.BMStype > 1) {
+            settings.BMStype = 0;
           }
           break;
 
@@ -3139,6 +3141,7 @@ void menu()
     menuload = 1;
   }
 }
+}
 
 //ID offset is only applied to battery module frames
 void canread(int canInterfaceOffset, int idOffset)
@@ -3288,6 +3291,7 @@ void canread(int canInterfaceOffset, int idOffset)
 
     Serial.println();
   }
+}
 }
 
 void CAB300()
@@ -3729,10 +3733,6 @@ void dashupdate()
 }
 
 
-
-
-
-
 void chargercomms()
 {
   if (settings.chargertype == Elcon)
@@ -3915,7 +3915,7 @@ void chargercomms()
   }
 }
 
-uint8_t getcheck(CANMessage &msg, int id)
+uint8_t getcheck(BMS_CAN_MESSAGE &msg, int id)
 {
   unsigned char canmes [11];
   int meslen = msg.len + 1; //remove one for crc and add two for id bytes

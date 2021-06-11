@@ -66,5 +66,5 @@ class BMSModule
     uint32_t lasterror;
     uint8_t cmuerror;
     uint32_t timeout;
-
+    int16_t TempOff;
 };

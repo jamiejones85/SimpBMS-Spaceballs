@@ -73,15 +73,15 @@ void BMSModule::decodevwtemp(BMS_CAN_MESSAGE &msg)
   }
 }
 
-void BMSModuleManager::decodebmwtemp(BMS_CAN_MESSAGE &msg, int debug, int CSC)
+void BMSModule::decodebmwtemp(BMS_CAN_MESSAGE &msg, int CSC)
 {
-  int CMU = (msg.id & 0x00F) + 1;
-  modules[CMU].decodebmwtemp(msg, CSC);
-  if (debug == 1 && CMU > 0)
+  for (int g = 0; g < 4; g++)
   {
-    Serial.println();
-    Serial.print(CMU);
-    Serial.print(" Temp Found");
+    temperatures[g] = msg.buf[g] - 40;
+    if (temperatures[g] > -40)
+    {
+      temperatures[g] = temperatures[g] + TempOff;
+    }
   }
 }
 
@@ -160,79 +160,6 @@ void BMSModule::decodevwcan(int Id, BMS_CAN_MESSAGE &msg)
       temperatures[1] = 0.0f;
       temperatures[2] = 0.0f;
     }
-  }
-}
-
-void BMSModule::decodevwcan(int Id, BMS_CAN_MESSAGE &msg)
-{
-  switch (Id)
-  {
-    case 0:
-      error = msg.buf[0] + (msg.buf[1] << 8) + (msg.buf[2] << 16) + (msg.buf[3] << 24);
-      balstat = (msg.buf[5]<< 8) + msg.buf[4];
-      break;
-
-    case 1:
-      if (balstat == 0 && Ign == 0)
-      {
-        cellVolt[0] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-        cellVolt[1] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
-        cellVolt[2] = float(msg.buf[4] + (msg.buf[5] & 0x3F) * 256) / 1000;
-      }
-      break;
-
-    case 2:
-      if (balstat == 0 && Ign == 0)
-      {
-        cellVolt[3] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-        cellVolt[4] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
-        cellVolt[5] = float(msg.buf[4] + (msg.buf[5] & 0x3F) * 256) / 1000;
-      }
-      break;
-
-    case 3:
-      if (balstat == 0 && Ign == 0)
-      {
-        cellVolt[6] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-        cellVolt[7] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
-        cellVolt[8] = float(msg.buf[4] + (msg.buf[5] & 0x3F) * 256) / 1000;
-      }
-      break;
-
-    case 4:
-      if (balstat == 0 && Ign == 0)
-      {
-        cellVolt[9] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-        cellVolt[10] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
-        cellVolt[11] = float(msg.buf[4] + (msg.buf[5] & 0x3F) * 256) / 1000;
-      }
-      break;
-
-    case 5:
-      if (balstat == 0 && Ign == 0)
-      {
-        cellVolt[12] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-        cellVolt[13] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
-        cellVolt[14] = float(msg.buf[4] + (msg.buf[5] & 0x3F) * 256) / 1000;
-      }
-      break;
-
-
-    case 6:
-      if (balstat == 0 && Ign == 0)
-      {
-        cellVolt[15] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-      }
-      break;
-
-    default:
-
-      break;
-  }
-  for (int i = 0; i < 16; i++)
-  {
-    if (lowestCellVolt[i] > cellVolt[i] && cellVolt[i] >= IgnoreCell) lowestCellVolt[i] = cellVolt[i];
-    if (highestCellVolt[i] < cellVolt[i] && cellVolt[i] > 5.0) highestCellVolt[i] = cellVolt[i];
   }
 }
 

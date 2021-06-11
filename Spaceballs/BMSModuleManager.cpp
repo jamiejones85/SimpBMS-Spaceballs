@@ -439,7 +439,7 @@ void BMSModuleManager::decodebmwcan(BMS_CAN_MESSAGE &msg, int debug)
 void BMSModuleManager::decodebmwtemp(BMS_CAN_MESSAGE &msg, int debug, int CSC)
 {
   int CMU = (msg.id & 0x00F) + 1;
-  modules[CMU].decodetemp(msg, CSC);
+  modules[CMU].decodebmwtemp(msg, CSC);
   if (debug == 1 && CMU > 0)
   {
     Serial.println();
